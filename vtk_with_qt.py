@@ -31,12 +31,15 @@ Changes by Phil Thompson, Mar. 2008
  Added cursor support.
 """
 
+import os
 
-from PyQt4 import QtCore, QtGui
 import vtk
+from qtpy import QtCore, QtWidgets
+
+TRAVIS = os.environ.get('TRAVIS', 'false') == 'true'
 
 
-class QVTKRenderWindowInteractor(QtGui.QWidget):
+class QVTKRenderWindowInteractor(QtWidgets.QWidget):
 
     """ A QVTKRenderWindowInteractor for Python and Qt.  Uses a
     vtkGenericRenderWindowInteractor to handle the interactions.  Use
@@ -89,14 +92,14 @@ class QVTKRenderWindowInteractor(QtGui.QWidget):
     - Keypress f: fly to the picked point
 
     - Keypress p: perform a pick operation. The render window interactor
-    has an internal instance of vtkCellPicker that it uses to pick. 
+    has an internal instance of vtkCellPicker that it uses to pick.
 
     - Keypress r: reset the camera view along the current view
     direction. Centers the actors and moves the camera so that all actors
     are visible.
 
     - Keypress s: modify the representation of all actors so that they
-    are surfaces. 
+    are surfaces.
 
     - Keypress u: invoke the user-defined function. Typically, this
     keypress will bring up an interactor that you can type commands in.
@@ -148,7 +151,7 @@ class QVTKRenderWindowInteractor(QtGui.QWidget):
             rw = kw['rw']
 
         # create qt-level widget
-        QtGui.QWidget.__init__(self, parent, wflags|QtCore.Qt.MSWindowsOwnDC)
+        QtWidgets.QWidget.__init__(self, parent, wflags|QtCore.Qt.MSWindowsOwnDC)
 
         if rw: # user-supplied render window
             self._RenderWindow = rw
@@ -169,10 +172,10 @@ class QVTKRenderWindowInteractor(QtGui.QWidget):
         self.setAttribute(QtCore.Qt.WA_PaintOnScreen)
         self.setMouseTracking(True) # get all mouse events
         self.setFocusPolicy(QtCore.Qt.WheelFocus)
-        self.setSizePolicy(QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding))
+        self.setSizePolicy(QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding))
 
         self._Timer = QtCore.QTimer(self)
-        self.connect(self._Timer, QtCore.SIGNAL('timeout()'), self.TimerEvent)
+        # self.connect(self._Timer, QtCore.SIGNAL('timeout()'), self.TimerEvent)
 
         self._Iren.AddObserver('CreateTimerEvent', self.CreateTimer)
         self._Iren.AddObserver('DestroyTimerEvent', self.DestroyTimer)
@@ -344,11 +347,11 @@ class QVTKRenderWindowInteractor(QtGui.QWidget):
         self.update()
 
 
-def QVTKRenderWidgetConeExample():    
+def QVTKRenderWidgetConeExample():
     """A simple example that uses the QVTKRenderWindowInteractor class."""
 
     # every QT app needs an app
-    app = QtGui.QApplication(['QVTKRenderWindowInteractor'])
+    app = QtWidgets.QApplication(['QVTKRenderWindowInteractor'])
 
     # create the widget
     widget = QVTKRenderWindowInteractor()
@@ -376,7 +379,8 @@ def QVTKRenderWidgetConeExample():
     widget.show()
 
     # start event processing
-    app.exec_()
+    if not TRAVIS:
+        app.exec_()
 
 if __name__ == "__main__":
     QVTKRenderWidgetConeExample()
