@@ -1,5 +1,6 @@
 # import Tkinter
 import vtk
+import os
 from numpy import *
 from astropy.io import fits
 # from vtk.tk.vtkTkRenderWindowInteractor import vtkTkRenderWindowInteractor
@@ -51,36 +52,81 @@ dataImporter.SetWholeExtent(0, nx-1, 0, ny-1, 0, nz-1)
 # voiHead.SetVOI( 0,255, 60,255, 0,100 )
 # voiHead.SetSampleRate( 1,1,1 )
  
+
+'''
+If the performance of multiple isosurfaces is not satisfied, think about using vtkScalarTree in vtkContourFilter
+as ref to http://www.vtk.org/doc/nightly/html/classvtkContourFilter.html
+# cloudLayer = vtk.vtkContourFilter()
+'''
 # Generate an isosurface
-# UNCOMMENT THE FOLLOWING LINE FOR CONTOUR FILTER
-# contourBoneHead = vtk.vtkContourFilter()
-contourBoneHead = vtk.vtkMarchingCubes()
-# contourBoneHead.SetInput( dataImporter.GetOutput() )
-contourBoneHead.SetInputConnection( dataImporter.GetOutputPort() )
-contourBoneHead.ComputeNormalsOn()
-contourBoneHead.SetValue( 0, 150 )  # Bone isovalue
+cloudLayer = vtk.vtkMarchingCubes()
+# cloudLayer.SetInput( dataImporter.GetOutput() )
+cloudLayer.SetInputConnection( dataImporter.GetOutputPort() )
+cloudLayer.ComputeNormalsOn()
+
+# SetValue (int i, double value), Set a particular contour value at contour number i. 
+# TODO: possible to set multiple layers here through SetValue, but the color and opacity of each layer can't be assigned individually
+# TODO: write a loop to add actors like vtk_points
+
+cloudLayer.SetValue( 0, 100 )
+cloudLayer.ComputeNormalsOn()  # consider normals and return better surface
  
 # Take the isosurface data and create geometry
 geoBoneMapper = vtk.vtkPolyDataMapper()
-# geoBoneMapper.SetInput( contourBoneHead.GetOutput() )
-geoBoneMapper.SetInputConnection( contourBoneHead.GetOutputPort() )
+# geoBoneMapper.SetInput( cloudLayer.GetOutput() )
+geoBoneMapper.SetInputConnection( cloudLayer.GetOutputPort() )
 geoBoneMapper.ScalarVisibilityOff()
  
 # Take the isosurface data and create geometry
-actorBone = vtk.vtkLODActor()
-actorBone.SetNumberOfCloudPoints( 1000000 )
-actorBone.SetMapper( geoBoneMapper )
-actorBone.GetProperty().SetColor( 1, 1, 1 )
+actorCloud = vtk.vtkLODActor()
+actorCloud.SetNumberOfCloudPoints( 1000000 )
+actorCloud.SetMapper( geoBoneMapper )
+actorCloud.GetProperty().SetColor( 1, 0.5, 1)
+actorCloud.GetProperty().SetOpacity(0.2)
+
+
+# Generate the second isosurface
+cloudLayer2 = vtk.vtkMarchingCubes()
+# cloudLayer.SetInput( dataImporter.GetOutput() )
+cloudLayer2.SetInputConnection( dataImporter.GetOutputPort() )
+cloudLayer2.ComputeNormalsOn()
+
+# SetValue (int i, double value), Set a particular contour value at contour number i. 
+cloudLayer2.SetValue( 0, 200 )
+ 
+# Take the isosurface data and create geometry
+geoBoneMapper2 = vtk.vtkPolyDataMapper()
+# geoBoneMapper.SetInput( cloudLayer.GetOutput() )
+geoBoneMapper2.SetInputConnection( cloudLayer2.GetOutputPort() )
+geoBoneMapper2.ScalarVisibilityOff()
+ 
+# Take the isosurface data and create geometry
+actorCloud2 = vtk.vtkLODActor()
+actorCloud2.SetNumberOfCloudPoints( 1000000 )
+actorCloud2.SetMapper( geoBoneMapper2 )
+actorCloud2.GetProperty().SetColor( 1, 0.5, 0.2)
+actorCloud2.GetProperty().SetOpacity(0.8)
  
 # Create renderer
 ren = vtk.vtkRenderer()
 ren.SetBackground( 0.329412, 0.34902, 0.427451 ) #Paraview blue
-ren.AddActor(actorBone)
+ren.AddActor(actorCloud)
+ren.AddActor(actorCloud2)
  
 # Create a window for the renderer of size 250x250
 renWin = vtk.vtkRenderWindow()
 renWin.AddRenderer(ren)
-renWin.SetSize(250, 250)
+renWin.SetSize(500, 500)
+
+# Output to obj and mtl
+
+obj = vtk.vtkOBJExporter()
+obj.SetInput(renWin)
+obj.SetFilePrefix( "./l1448_13CO")
+obj.Write()
+print('write done')
+# os.remove('./cells.obj')
+# os.remove('./cells.mtl')
  
 # Set an user interface interactor for the render window
 iren = vtk.vtkRenderWindowInteractor()

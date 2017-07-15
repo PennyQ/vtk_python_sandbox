@@ -4,7 +4,7 @@ from numpy import random
 from astropy.io import fits
 
 # TODO: follow http://public.kitware.com/pipermail/paraview/2012-February/023989.html for setting color with column data
-
+# Plot points as vertices of the Poly Object
 class VtkPointCloud:
 
     def __init__(self, zMin=-10.0, zMax=10.0, maxNumPoints=1e6):
@@ -27,6 +27,9 @@ class VtkPointCloud:
             self.vtkCells.InsertNextCell(1)
             self.vtkCells.InsertCellPoint(pointId)
             self.vtkActor.GetProperty().SetPointSize(size)
+            self.vtkActor.GetProperty().SetRenderPointsAsSpheres(True)
+            self.vtkActor.GetProperty().SetOpacity(0.2)
+            
         else:
             r = random.randint(0, self.maxNumPoints)
             self.vtkPoints.SetPoint(r, point[:])
@@ -45,6 +48,8 @@ class VtkPointCloud:
         self.vtkPolyData.GetPointData().SetActiveScalars('DepthArray')
 
 pointCloud = VtkPointCloud()
+
+# Test with astronomy catalog
 inputFile='cloud_catalog_july14_2015.fits'
 # data = numpy.genfromtxt(inputFile, delimiter=' ')
 tbdata=fits.open(inputFile)[1].data
@@ -53,9 +58,14 @@ xyz[:, 0] = tbdata['x_gal']
 xyz[:, 1] = tbdata['y_gal']
 xyz[:, 2] = tbdata['z_gal']*10
 
-numberOfPoints = tbdata.shape[0]
+# Test performance with fake data
+i=500000
+xyz = np.random.rand(i, 3)*i
+numberOfPoints = i
 
-for i in xrange(numberOfPoints):
+# numberOfPoints = tbdata.shape[0]
+
+for i in range(numberOfPoints):
     print('point pos', xyz[i][:3])
     pointCloud.addPoint(xyz[i][:3])
 
