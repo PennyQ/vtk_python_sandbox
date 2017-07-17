@@ -1,7 +1,10 @@
+import os
 import vtk
 import numpy as np
 from numpy import random
 from astropy.io import fits
+
+TRAVIS = os.environ.get('TRAVIS', 'false') == 'true'
 
 # TODO: follow http://public.kitware.com/pipermail/paraview/2012-February/023989.html for setting color with column data
 # Plot points as vertices of the Poly Object
@@ -85,4 +88,6 @@ renderWindowInteractor.SetRenderWindow(renderWindow)
 
 # Begin Interaction
 renderWindow.Render()
-renderWindowInteractor.Start()
+
+if not TRAVIS:
+    renderWindowInteractor.Start()

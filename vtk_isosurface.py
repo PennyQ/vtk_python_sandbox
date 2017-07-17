@@ -1,22 +1,26 @@
 # import Tkinter
+import os
 import vtk
 import os
 from numpy import *
 from astropy.io import fits
+
+TRAVIS = os.environ.get('TRAVIS', 'false') == 'true'
+
 # from vtk.tk.vtkTkRenderWindowInteractor import vtkTkRenderWindowInteractor
- 
+
 # -------read fits file------
 # We begin by creating the data we want to render.
 # For this tutorial, we create a 3D-image containing three overlaping cubes.
 # This data can of course easily be replaced by data from a medical CT-scan or anything else three dimensional.
 # The only limit is that the data must be reduced to unsigned 8 bit or 16 bit integers.
 
-data_matrix = fits.open('l1448_13CO.fits')[0].data #pyfits.getdata('L1448_13CO.fits.gz')
+data_matrix = fits.open('L1448_13CO.fits')[0].data #pyfits.getdata('L1448_13CO.fits.gz')
 # data_matrix = data_matrix[145:245,:,:]
 data_matrix[data_matrix < 0.5] = 0.
 data_matrix = (data_matrix * 100).astype(uint8)
 nz, ny, nx = data_matrix.shape
- 
+
 # For VTK to be able to use the data, it must be stored as a VTK-image. This can be done by the vtkImageImport-class which
 # imports raw data and stores it.
 dataImporter = vtk.vtkImageImport()
@@ -45,7 +49,7 @@ dataImporter.SetWholeExtent(0, nx-1, 0, ny-1, 0, nz-1)
 # readerVolume.SetNumberOfScalarComponents( 1 )
 # readerVolume.SetDataByteOrderToBigEndian()
 # readerVolume.SetFileName( "./Female.raw" )
- 
+
 # Extract the region of interest
 # voiHead = vtk.vtkExtractVOI()
 # voiHead.SetInput( readerVolume.GetOutput() )
@@ -76,7 +80,7 @@ geoBoneMapper = vtk.vtkPolyDataMapper()
 # geoBoneMapper.SetInput( cloudLayer.GetOutput() )
 geoBoneMapper.SetInputConnection( cloudLayer.GetOutputPort() )
 geoBoneMapper.ScalarVisibilityOff()
- 
+
 # Take the isosurface data and create geometry
 actorCloud = vtk.vtkLODActor()
 actorCloud.SetNumberOfCloudPoints( 1000000 )
@@ -128,11 +132,14 @@ print('write done')
 # os.remove('./cells.obj')
 # os.remove('./cells.mtl')
  
+
 # Set an user interface interactor for the render window
 iren = vtk.vtkRenderWindowInteractor()
 iren.SetRenderWindow(renWin)
- 
+
 # Start the initialization and rendering
 iren.Initialize()
 renWin.Render()
-iren.Start()
+
+if not TRAVIS:
+    iren.Start()
