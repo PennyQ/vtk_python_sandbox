@@ -43,7 +43,7 @@ alphaChannelFunc.AddPoint(150, 0.2)
 # This class stores color data and can create color tables from a few color points. For this demo, we want the three cubes
 # to be of the colors red green and blue.
 
-colorFunc = vtk.vtkColorTransferFunction()
+colorFunc = vtk.vtkColorTransferFunction() # Defines a transfer function for mapping a property to an RGB color value
 colorFunc.AddRGBPoint(0.0, 0.0, 0.0, 0.0)
 colorFunc.AddRGBPoint(64.0, 1.0, 0.0, 0.0)
 colorFunc.AddRGBPoint(128.0, 0.0, 0.0, 1.0)
