@@ -62,11 +62,11 @@ xyz[:, 1] = tbdata['y_gal']
 xyz[:, 2] = tbdata['z_gal']*10
 
 # Test performance with fake data
-i=500000
-xyz = np.random.rand(i, 3)*i
-numberOfPoints = i
+# i=500000
+# xyz = np.random.rand(i, 3)*i
+# numberOfPoints = i
 
-# numberOfPoints = tbdata.shape[0]
+numberOfPoints = tbdata.shape[0]
 
 for i in range(numberOfPoints):
     print('point pos', xyz[i][:3])
